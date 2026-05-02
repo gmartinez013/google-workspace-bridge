@@ -1,0 +1,29 @@
+{
+  "name": "google-workspace-bridge",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "A small Google Workspace bridge for Gmail, Calendar, and Drive with durable OAuth handling.",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "auth": "tsx src/index.ts auth",
+    "gmail:search": "tsx src/index.ts gmail search",
+    "gmail:get": "tsx src/index.ts gmail get",
+    "calendar:list": "tsx src/index.ts calendar list",
+    "calendar:create": "tsx src/index.ts calendar create",
+    "calendar:update": "tsx src/index.ts calendar update",
+    "drive:search": "tsx src/index.ts drive search",
+    "drive:export": "tsx src/index.ts drive export"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0",
+    "yargs": "^17.7.2",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "tsx": "^4.19.1",
+    "@types/node": "^22.10.1"
+  }
+}
