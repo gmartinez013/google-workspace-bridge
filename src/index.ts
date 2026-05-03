@@ -64,6 +64,20 @@ async function authenticate() {
   return oauth2Client;
 }
 
+
+async function gmailAttachment(auth: any, messageId: string, attachmentId: string, out?: string) {
+  const gmail = google.gmail({ version: 'v1', auth });
+  const res = await gmail.users.messages.attachments.get({ userId: 'me', messageId, id: attachmentId });
+  const data = res.data.data || '';
+  const buf = Buffer.from(data, 'base64url');
+  if (out) {
+    fs.writeFileSync(out, buf);
+    console.log(`Wrote ${out}`);
+  } else {
+    process.stdout.write(buf.toString('utf8'));
+  }
+}
+
 async function gmailSearch(auth: any, query: string, max = 10) {
   const gmail = google.gmail({ version: 'v1', auth });
   const res = await gmail.users.messages.list({ userId: 'me', q: query, maxResults: max });
@@ -139,6 +153,7 @@ async function main() {
   if (cmd === 'auth') return;
   if (cmd === 'gmail' && subcmd === 'search') return gmailSearch(auth, rest[0] || 'in:inbox newer_than:7d', Number(rest[1] || 10));
   if (cmd === 'gmail' && subcmd === 'get') return gmailGet(auth, rest[0]);
+  if (cmd === 'gmail' && subcmd === 'attachment') return gmailAttachment(auth, rest[0], rest[1], rest[2]);
   if (cmd === 'calendar' && subcmd === 'list') return calendarList(auth, rest[0], rest[1]);
   if (cmd === 'calendar' && subcmd === 'create') return calendarCreate(auth, rest[0], rest[1], rest[2], rest[3]);
   if (cmd === 'calendar' && subcmd === 'update') return calendarUpdate(auth, rest[0], rest.slice(1).join(' '));

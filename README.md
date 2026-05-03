@@ -8,7 +8,7 @@ A small Google Workspace bridge for Gmail, Calendar, and Drive with durable OAut
 
 ## Current scope
 
-- Gmail search / read
+- Gmail search / read / attachment download
 - Calendar list / create / update
 - Drive search / export
 - local OAuth token persistence in `.local/token.json`
@@ -34,6 +34,8 @@ npm run auth
 ```bash
 npm run gmail:search -- "in:inbox newer_than:7d"
 npm run gmail:get -- <messageId>
+# direct attachment retrieval
+npx tsx src/index.ts gmail attachment <messageId> <attachmentId> [outfile]
 npm run calendar:list -- "2026-05-01T00:00:00-07:00" "2026-05-05T23:59:00-07:00"
 npm run drive:search -- "resume"
 ```
