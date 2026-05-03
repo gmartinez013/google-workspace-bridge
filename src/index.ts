@@ -126,6 +126,20 @@ async function calendarUpdate(auth: any, eventId: string, description: string) {
   console.log(res.data.htmlLink || res.data.id);
 }
 
+
+async function driveUpload(auth: any, filePath: string, mimeType?: string) {
+  const drive = google.drive({ version: 'v3', auth });
+  const resolved = path.resolve(filePath);
+  const name = path.basename(resolved);
+  const mediaMime = mimeType || (name.endsWith('.doc') ? 'application/msword' : name.endsWith('.docx') ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : name.endsWith('.md') ? 'text/markdown' : 'application/octet-stream');
+  const res = await drive.files.create({
+    requestBody: { name },
+    media: { mimeType: mediaMime, body: fs.createReadStream(resolved) },
+    fields: 'id,name,webViewLink,webContentLink,mimeType'
+  });
+  console.log(JSON.stringify(res.data, null, 2));
+}
+
 async function driveSearch(auth: any, query: string, max = 10) {
   const drive = google.drive({ version: 'v3', auth });
   const res = await drive.files.list({ q: `name contains '${query}' and trashed = false`, pageSize: max, fields: 'files(id,name,mimeType,modifiedTime)' });
@@ -159,6 +173,7 @@ async function main() {
   if (cmd === 'calendar' && subcmd === 'update') return calendarUpdate(auth, rest[0], rest.slice(1).join(' '));
   if (cmd === 'drive' && subcmd === 'search') return driveSearch(auth, rest[0] || 'resume', Number(rest[1] || 10));
   if (cmd === 'drive' && subcmd === 'export') return driveExport(auth, rest[0], rest[1], rest[2]);
+  if (cmd === 'drive' && subcmd === 'upload') return driveUpload(auth, rest[0], rest[1]);
 
   throw new Error(`Unknown command: ${cmd} ${subcmd || ''}`);
 }
