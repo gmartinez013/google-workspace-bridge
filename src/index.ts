@@ -103,7 +103,7 @@ async function calendarList(auth: any, from: string, to: string) {
   }
 }
 
-async function calendarCreate(auth: any, summary: string, from: string, to: string, description?: string) {
+async function calendarCreate(auth: any, summary: string, from: string, to: string, description?: string, attendeesCsv?: string) {
   const cal = google.calendar({ version: 'v3', auth });
   const res = await cal.events.insert({
     calendarId: 'primary',
@@ -111,7 +111,8 @@ async function calendarCreate(auth: any, summary: string, from: string, to: stri
       summary,
       description,
       start: { dateTime: from },
-      end: { dateTime: to }
+      end: { dateTime: to },
+      attendees: attendeesCsv ? attendeesCsv.split(',').map(x => x.trim()).filter(Boolean).map(email => ({ email })) : undefined
     }
   });
   console.log(res.data.htmlLink || res.data.id);
@@ -169,7 +170,7 @@ async function main() {
   if (cmd === 'gmail' && subcmd === 'get') return gmailGet(auth, rest[0]);
   if (cmd === 'gmail' && subcmd === 'attachment') return gmailAttachment(auth, rest[0], rest[1], rest[2]);
   if (cmd === 'calendar' && subcmd === 'list') return calendarList(auth, rest[0], rest[1]);
-  if (cmd === 'calendar' && subcmd === 'create') return calendarCreate(auth, rest[0], rest[1], rest[2], rest[3]);
+  if (cmd === 'calendar' && subcmd === 'create') return calendarCreate(auth, rest[0], rest[1], rest[2], rest[3], rest[4]);
   if (cmd === 'calendar' && subcmd === 'update') return calendarUpdate(auth, rest[0], rest.slice(1).join(' '));
   if (cmd === 'drive' && subcmd === 'search') return driveSearch(auth, rest[0] || 'resume', Number(rest[1] || 10));
   if (cmd === 'drive' && subcmd === 'export') return driveExport(auth, rest[0], rest[1], rest[2]);
