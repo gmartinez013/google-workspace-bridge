@@ -9,7 +9,8 @@ dotenv.config();
 const SCOPES = [
   'https://www.googleapis.com/auth/gmail.readonly',
   'https://www.googleapis.com/auth/calendar',
-  'https://www.googleapis.com/auth/drive'
+  'https://www.googleapis.com/auth/drive',
+  'https://www.googleapis.com/auth/spreadsheets'
 ];
 
 const DATA_DIR = path.join(process.cwd(), '.local');
@@ -156,10 +157,42 @@ async function driveExport(auth: any, fileId: string, mimeType: string, out: str
   console.log(`Wrote ${out}`);
 }
 
+async function sheetsCreate(auth: any, title: string) {
+  const sheets = google.sheets({ version: 'v4', auth });
+  const res = await sheets.spreadsheets.create({
+    requestBody: {
+      properties: { title }
+    },
+    fields: 'spreadsheetId,spreadsheetUrl'
+  });
+  console.log(JSON.stringify(res.data, null, 2));
+}
+
+async function sheetsUpdate(auth: any, spreadsheetId: string, range: string, values: string[][]) {
+  const sheets = google.sheets({ version: 'v4', auth });
+  const res = await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range,
+    valueInputOption: 'RAW',
+    requestBody: {
+      values
+    }
+  });
+  console.log(JSON.stringify(res.data, null, 2));
+}
+
+async function sheetsRead(auth: any, spreadsheetId: string, range: string) {
+  const sheets = google.sheets({ version: 'v4', auth });
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range
+  });
+  console.log(JSON.stringify(res.data.values, null, 2));
+}
 async function main() {
   const [cmd, subcmd, ...rest] = process.argv.slice(2);
   if (!cmd) {
-    console.log('Usage: auth | gmail search|get | calendar list|create|update | drive search|export');
+    console.log('Usage: auth | gmail search|get|attachment | calendar list|create|update | drive search|export|upload | sheets create|update|read');
     process.exit(0);
   }
 
@@ -175,6 +208,11 @@ async function main() {
   if (cmd === 'drive' && subcmd === 'search') return driveSearch(auth, rest[0] || 'resume', Number(rest[1] || 10));
   if (cmd === 'drive' && subcmd === 'export') return driveExport(auth, rest[0], rest[1], rest[2]);
   if (cmd === 'drive' && subcmd === 'upload') return driveUpload(auth, rest[0], rest[1]);
+
+  if (cmd === 'drive' && subcmd === 'upload') return driveUpload(auth, rest[0], rest[1]);
+  if (cmd === 'sheets' && subcmd === 'create') return sheetsCreate(auth, rest[0]);
+  if (cmd === 'sheets' && subcmd === 'update') { const raw = rest[2]; const vals = raw.startsWith('[') ? JSON.parse(raw) : JSON.parse(fs.readFileSync(raw, 'utf8')); return sheetsUpdate(auth, rest[0], rest[1], vals); }
+  if (cmd === 'sheets' && subcmd === 'read') return sheetsRead(auth, rest[0], rest[1]);
 
   throw new Error(`Unknown command: ${cmd} ${subcmd || ''}`);
 }
